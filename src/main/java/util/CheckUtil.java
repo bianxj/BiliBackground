@@ -23,6 +23,22 @@ public class CheckUtil {
 		return pwd.matches(PASSWORD_FORMAT);
 	} 
 	
+	private final static String PHONE_FORMAT = "^1[0-9]{10}$";
+	public boolean isPhone(String phone) {
+		if (isEmpty(phone)) {
+			return false;
+		}
+		return phone.matches(PHONE_FORMAT);
+	}
+	
+	private final static String EMAIL_FORMAT = "^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$";
+	public boolean isEmail(String email) {
+		if ( isEmpty(email) ) {
+			return false;
+		}
+		return email.matches(EMAIL_FORMAT);
+	}
+	
 	public boolean isEmpty(String str) {
 		if ( str == null || str.length() == 0 ) {
 			return true;

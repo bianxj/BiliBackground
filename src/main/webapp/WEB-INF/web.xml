@@ -23,6 +23,10 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>dispatcher</servlet-name>
+		<url-pattern>*.file</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>dispatcher</servlet-name>
 		<url-pattern>*.do</url-pattern>
 	</servlet-mapping>
 	<listener>
@@ -69,7 +73,7 @@
 		<filter-class>filter.CrossDomainFilter</filter-class>
 	</filter>
 	
-	<filter-mapping>
+ 	<filter-mapping>
 		<filter-name>SessionCheckFilter</filter-name>
 		<url-pattern>*.do</url-pattern>
 	</filter-mapping>

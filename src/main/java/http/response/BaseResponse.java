@@ -15,4 +15,8 @@ public class BaseResponse {
 		this.desc = ResponseMessage.getDesc(responseId);
 	}
 	
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+	
 }

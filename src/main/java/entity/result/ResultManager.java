@@ -1,18 +1,16 @@
-package entity.table;
+package entity.result;
 
-import java.sql.Timestamp;
+public class ResultManager {
 
-
-public class Manager {
 	private int id;
 	private String name;
 	private String password;
 	private String phone;
 	private String email;
 	private int roleId;
-	
-	private Timestamp createTime;
-	private Timestamp updateTime;
+	private String role;
+	private String createTime;
+	private String updateTime;
 	
 	public int getId() {
 		return id;
@@ -44,23 +42,29 @@ public class Manager {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public Timestamp getCreateTime() {
-		return createTime;
-	}
-	public void setCreateTime(Timestamp createTime) {
-		this.createTime = createTime;
-	}
-	public Timestamp getUpdateTime() {
-		return updateTime;
-	}
-	public void setUpdateTime(Timestamp updateTime) {
-		this.updateTime = updateTime;
-	}
 	public int getRoleId() {
 		return roleId;
 	}
 	public void setRoleId(int roleId) {
 		this.roleId = roleId;
+	}
+	public String getRole() {
+		return role;
+	}
+	public void setRole(String role) {
+		this.role = role;
+	}
+	public String getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+	public String getUpdateTime() {
+		return updateTime;
+	}
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
 	}
 	
 }

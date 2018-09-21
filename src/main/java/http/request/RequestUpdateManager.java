@@ -1,12 +1,20 @@
 package http.request;
 
-public class RequestInsertManager {
-
+public class RequestUpdateManager extends BaseRequest {
+	
+	private int id;
 	private String name;
+//	private String password;
 	private String phone;
 	private String email;
 	private int roleId;
-	private String pwd;
+	
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
 	public String getName() {
 		return name;
 	}
@@ -25,18 +33,11 @@ public class RequestInsertManager {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public String getPwd() {
-		return pwd;
-	}
-	public void setPwd(String pwd) {
-		this.pwd = pwd;
-	}
 	public int getRoleId() {
 		return roleId;
 	}
 	public void setRoleId(int roleId) {
 		this.roleId = roleId;
 	}
-	
 	
 }

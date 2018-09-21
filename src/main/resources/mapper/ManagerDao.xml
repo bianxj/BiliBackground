@@ -1,28 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="dao.ManagerDao">
-	
-	<resultMap type="entity.table.Manager" id="Manager">
-		<result column="name" property="name"/>
-		<result column="password" property="password"/>
-		<result column="phone" property="phone"/>
-		<result column="email" property="email"/>
-		<result column="role" property="role"/>
-		<result column="create_time" property="createTime"/>
-		<result column="update_time" property="updateTime"/>
+
+	<resultMap type="entity.result.ResultManager" id="Manager">
+		<result column="m_id" property="id" />
+		<result column="m_name" property="name" />
+		<result column="m_password" property="password" />
+		<result column="m_phone" property="phone"/>
+		<result column="m_email" property="email" />
+		<result column="r_id" property="roleId" />
+		<result column="r_role" property="role" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
 	</resultMap>
-	
-	<select id="searchManagerByName" resultMap="Manager">
-		select * from manager where name=#{name}
-	</select>
-	
-	<select id="searchManagerByNameAndPwd" resultMap="Manager">
-		select * from manager where name=#{name} and password=#{password}
+
+	<select id="searchAllManagers" resultMap="Manager">
+		select
+			m.id m_id,
+			m.name m_name,
+			m.password m_password,
+			m.phone m_phone,
+			m.email m_email,
+			r.id r_id,
+			r.role r_role,
+			DATE_FORMAT(m.create_time,'%Y-%m-%d') create_time,
+			DATE_FORMAT(m.update_time,'%Y-%m-%d') update_time
+		from manager m , role r
+		where m.role_id = r.id
 	</select>
 	
 	<select id="searchManagerList" resultMap="Manager">
-		select * from manager
-		<where>
+		select
+			m.id m_id,
+			m.name m_name,
+			m.password m_password,
+			m.phone m_phone,
+			m.email m_email,
+			r.id r_id,
+			r.role r_role,
+			DATE_FORMAT(m.create_time,'%Y-%m-%d') create_time,
+			DATE_FORMAT(m.update_time,'%Y-%m-%d') update_time
+		from manager m , role r
+		where m.role_id = r.id
 			<if test="name!=null and name!=''">
 				and name=#{name}
 			</if>
@@ -30,29 +49,187 @@
 				and role=#{role}
 			</if>
 			<if test="startTime!=null and startTime!=''">
-				<![CDATA[ and date_format(create_time,'%Y-%m-%d') >= #{startTime}]]>
+				<![CDATA[ and DATE_FORMAT(create_time,'%Y-%m-%d') >= #{startTime}]]>
 			</if>
 			<if test="endTime!=null and endTime!=''">
-				<![CDATA[ and date_format(create_time,'%Y-%m-%d') <= #{endTime}]]>
+				<![CDATA[ and DATE_FORMAT(create_time,'%Y-%m-%d') <= #{endTime}]]>
 			</if>
-		</where>
+	</select>
+
+	<select id="searchManagerByName" resultMap="Manager">
+		select
+			m.id m_id,
+			m.name m_name,
+			m.password m_password,
+			m.phone m_phone,
+			m.email m_email,
+			r.id r_id,
+			r.role r_role,
+			DATE_FORMAT(m.create_time,'%Y-%m-%d') create_time,
+			DATE_FORMAT(m.update_time,'%Y-%m-%d') update_time
+		from manager m , role r
+		where m.role_id = r.id
+			and m.name = #{name}
+	</select>
+
+	<select id="searchManagerById" resultMap="Manager">
+		select
+			m.id m_id,
+			m.name m_name,
+			m.password m_password,
+			m.phone m_phone,
+			m.email m_email,
+			r.id r_id,
+			r.role r_role,
+			DATE_FORMAT(m.create_time,'%Y-%m-%d') create_time,
+			DATE_FORMAT(m.update_time,'%Y-%m-%d') update_time
+		from manager m , role r
+		where m.role_id = r.id
+			and m.id = #{id}
+	</select>
+
+	<insert id="insertManager" parameterType="entity.table.Manager">
+		insert into manager(
+		name,
+		password,
+		phone,
+		email,
+		role_id,
+		create_time,
+		update_time)
+		values(
+		#{name},
+		#{password},
+		#{phone},
+		#{email},
+		#{roleId},
+		#{createTime},
+		#{updateTime}
+		)
+	</insert>
+
+	<insert id="batchInsertManager">
+		insert into manager(
+		name,
+		password,
+		phone,
+		email,
+		role_id,
+		create_time,
+		update_time)
+		values
+		<foreach collection="managers" index="index" item="item"
+			separator=",">
+			(#{item.name},#{item.password},#{item.phone},#{item.email},#{item.roleId},#{item.createTime},#{item.updateTime})
+		</foreach>
+	</insert>
+
+	<update id="updateManager" parameterType="entity.table.Manager">
+		update manager set
+		name=#{name},
+		phone=#{phone},
+		email=#{email},
+		role_id=#{roleId},
+		update_time=#{updateTime}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteManager">
+		delete from manager where id=#{id}
+	</delete>
+
+	<resultMap type="entity.result.ResultRole" id="Role">
+		<result column="id" property="id" />
+		<result column="role" property="role" />
+		<result column="create_time" property="createTime" />
+	</resultMap>
+
+	<select id="searchRoleList" resultMap="Role">
+		select id , role , DATE_FORMAT(create_time,'%Y-%m-%d') create_time from role
+	</select>
+
+	<select id="isRoleExists" resultMap="Role">
+		select * from role where id
+		= #{id}
+	</select>
+
+	<resultMap type="entity.result.ResultDir" id="Dir">
+		<result column="id" property="id"/>
+		<result column="pid" property="pid"/>
+		<result column="tag_name" property="tagName"/>
+		<result column="icon" property="icon"/>
+		<result column="href" property="href"/>
+		<result column="effect" property="effect"/>
+	</resultMap>
+
+	<select id="searchDirByManagerId" resultMap="Dir">
+		select d.* , case when u.id then 1 else 0 end as effect
+		from dir d
+		left join (
+			select d.id
+		    from dir d , manager m , relevance_role_dir r
+		    where d.id = r.dir_id
+		    and r.role_id = m.role_id
+		    and m.id = #{managerId}
+		) u on d.id = u.id
 	</select>
 	
-	<select id="searchRoleList" resultType="String" >
-		select t.role from role t
+	<select id="searchDirByRoleId" resultMap="Dir">
+		select d.* , case when u.id then 1 else 0 end as effect 
+		from dir d 
+		left join (
+			select d.id
+			from dir d , relevance_role_dir r
+			where d.id = r.dir_id
+			and r.role_id = #{roleId}
+		) u on d.id = u.id
 	</select>
 	
-	<insert id="insertManager">
-		insert into manager(name,password,phone,email,role,create_time,update_time)
-		values(#{name},#{password},#{phone},#{email},#{role},#{create_time},#{update_time})
+	<select id="searchAllDir" resultMap="Dir">
+		select * from dir
+	</select>
+	
+	<insert id="insertRoleDir">
+		insert into relevance_role_dir(role_id,dir_id)
+		values
+		<foreach collection="dirs" index="index" item="item" separator=",">
+		(#{roleId},#{item})
+		</foreach>
+	</insert>
+
+	<select id="searchRoleByName" resultMap="Role">
+		select * from role where role = #{role};
+	</select>
+	
+	<select id="searchRoleById" resultMap="Role">
+		select * from role where id = #{roleId}
+	</select>
+
+	<insert id="insertRole" parameterType="entity.table.Role">
+		insert into role(role,create_time)
+		values(#{role},#{createTime})
+		<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
 	</insert>
 	
-	<select id="isRoleExists" resultType="String">
-		select t.role from role t where t.role = #{role}
+	<select id="updateRole" parameterType="entity.table.Role">
+		update role r set r.role = #{role}
+		where r.id = #{id} 
 	</select>
 	
-	<delete id="deleteManager">
-		delete from manager where name=#{name}
+	<select id="canRemoveRole" resultType="java.lang.Integer">
+		select count(*) 
+		from manager
+		where role_id = #{roleId}
+	</select>
+
+	<delete id="deleteRole">
+		delete from role where id = #{roleId};
 	</delete>
 	
+	<delete id="deleteRelevanceRole">
+		delete from relevance_role_dir where role_id = #{roleId};
+	</delete>
+
 </mapper>

@@ -1,17 +1,17 @@
 package http.response;
 
-import entity.table.Manager;
+import entity.result.ResultManager;
 
 public class ResponseLogin extends BaseResponse {
 
-	private Manager manager;
+	private ResultManager manager;
 	private String sessionId;
 
-	public Manager getManager() {
+	public ResultManager getManager() {
 		return manager;
 	}
 
-	public void setManager(Manager manager) {
+	public void setManager(ResultManager manager) {
 		this.manager = manager;
 	}
 
