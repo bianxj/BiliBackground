@@ -3,6 +3,12 @@ package util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.http.HttpRequest;
 
 public class HttpUtil {
 
@@ -17,6 +23,16 @@ public class HttpUtil {
 
 	private HttpUtil() {
 		super();
+	}
+	
+	public <T> T readRequestToObject(HttpServletRequest request,Class<T> classOfT) throws IOException{
+		String str = readStreamToString(request.getInputStream());
+		return GsonUtil.getInstance().fromJson(str, classOfT);
+	}
+	
+	public void writeResponseFromObject(HttpServletResponse response,Object obj) throws IOException {
+		OutputStream os = response.getOutputStream();
+		os.write(GsonUtil.getInstance().toJson(obj).getBytes("utf-8"));
 	}
 	
 	public String readStreamToString(InputStream is) throws IOException {

@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +44,8 @@ import entity.table.Manager;
 import entity.table.Role;
 import http.ResponseMessage;
 import http.request.RequestAddRole;
+import http.request.RequestBatchDeleteManager;
+import http.request.RequestBatchDeleteRole;
 import http.request.RequestDeleteManager;
 import http.request.RequestInsertManager;
 import http.request.RequestLogin;
@@ -52,7 +53,6 @@ import http.request.RequestRemoveRole;
 import http.request.RequestSearchDir;
 import http.request.RequestSearchDirByRoleId;
 import http.request.RequestSearchManagers;
-import http.request.RequestTemplate;
 import http.request.RequestUpdateManager;
 import http.request.RequestUpdateRole;
 import http.response.BaseResponse;
@@ -74,6 +74,7 @@ public class ManagerController extends BaseController {
 	@Autowired
 	private ManagerDao managerDao;
 	
+	//--------------------------------------------------Login Start-----------------------------------------------------
 	@RequestMapping(value="/login.do",method=RequestMethod.POST)
 	public void login(HttpServletRequest request,HttpServletResponse response) {
 		InputStream is = null;
@@ -123,7 +124,9 @@ public class ManagerController extends BaseController {
 			closeStream(os);
 		}
 	}
+	//--------------------------------------------------Login End-------------------------------------------------------
 	
+	//--------------------------------------------------Manager Start---------------------------------------------------
 	@RequestMapping(value="/insertManager.do",method=RequestMethod.POST)
 	public void insertManager(HttpServletRequest request,HttpServletResponse response) {
 		InputStream is = null;
@@ -194,23 +197,6 @@ public class ManagerController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value="/searchRoles.do",method=RequestMethod.POST)
-	public void searchRoles(HttpServletRequest request,HttpServletResponse response) {
-		OutputStream os = null;
-		try {
-			List<ResultRole> roles = managerDao.searchRoleList();
-			
-			ResponseSearchRoles respObj = new ResponseSearchRoles();
-			respObj.setRoles(roles);
-			os = response.getOutputStream();
-			os.write(GsonUtil.getInstance().toJson(respObj).getBytes("utf-8"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			closeStream(os);
-		}
-	}
-
 	public final static String BATCH_INSERT_MANAGER_FILE_NAME = "file";
 	public final static String CACHE_UPLOAD_DIR = "cache";
 	@RequestMapping(value="/batchInsertManager.do",method=RequestMethod.POST)
@@ -332,41 +318,8 @@ public class ManagerController extends BaseController {
 			}
 		}
 	}
-
-	private Workbook getWorkbook(InputStream is,String fileName) throws IOException {
-		Workbook wb = new HSSFWorkbook(is);
-		return wb;
-	}
 	
-	private File saveUploadFile(MultipartFile file,String fileName) {
-		if ( file.isEmpty() ) {
-			return null;
-		}
-		InputStream is = null;
-		OutputStream os = null;
-		File cacheFile = null;
-		try {
-			is = file.getInputStream();
-			cacheFile = new File(fileName);
-			cacheFile.createNewFile();
-			os = new FileOutputStream(cacheFile);
-			System.out.println(cacheFile.getAbsolutePath());
-			int length = 0;
-			byte[] buff = new byte[40960];
-			while ( (length = is.read(buff)) > 0 ) {
-				os.write(buff, 0, length);
-			}
-			os.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			closeStream(os);
-			closeStream(is);
-		}
-		return cacheFile;
-	}
-	
-	@RequestMapping(value="updateManager.do",method=RequestMethod.POST)
+	@RequestMapping(value="/updateManager.do",method=RequestMethod.POST)
 	public void updateManager(HttpServletRequest request,HttpServletResponse response) {
 		InputStream is = null;
 		OutputStream os = null;
@@ -407,7 +360,7 @@ public class ManagerController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value="deleteManager.do",method=RequestMethod.POST)
+	@RequestMapping(value="/deleteManager.do",method=RequestMethod.POST)
 	public void deleteManager(HttpServletRequest request,HttpServletResponse response) {
 		InputStream is = null;
 		OutputStream os = null;
@@ -431,6 +384,70 @@ public class ManagerController extends BaseController {
 			e.printStackTrace();
 		} finally {
 			closeStream(is);
+			closeStream(os);
+		}
+	}
+
+	@RequestMapping(value="/batchDeleteManager.do",method=RequestMethod.POST)
+	public void batchDeleteManager(HttpServletRequest request,HttpServletResponse response) {
+		InputStream is = null;
+		OutputStream os = null;
+		try {
+			is = request.getInputStream();
+			String req = HttpUtil.getInstance().readStreamToString(is);
+			RequestBatchDeleteManager reqObj = GsonUtil.getInstance().fromJson(req, RequestBatchDeleteManager.class);
+			managerDao.batchDeleteManager(reqObj.getIds());
+			
+			BaseResponse respObj = new BaseResponse();
+			os = response.getOutputStream();
+			os.write(GsonUtil.getInstance().toJson(respObj).getBytes("utf-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			closeStream(is);
+			closeStream(os);
+		}
+	}
+		
+	@RequestMapping(value="managerTemplate.file",method=RequestMethod.GET)
+	public void generateManagerTemplate(HttpServletRequest request,HttpServletResponse response) {
+		OutputStream os = null;
+		try {
+			HSSFWorkbook wb = null;
+			wb = createManagerTemplate();
+			response.setHeader("Content-disposition", "attachment;filename= manager.xls");  //客户端得到的文件名
+
+			response.setContentType("application/x-download");//设置为下载application/x-download  	
+			response.setContentType("text/html; charset=UTF-8");   
+			response.setHeader("Cache-Control","no-cache");   
+			response.setHeader("Cache-Control","no-store");   
+			response.setDateHeader("Expires", 0);   
+			response.setHeader("Pragma","no-cache");
+			os = response.getOutputStream();
+			wb.write(os);
+			os.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			closeStream(os);
+		}
+	}
+	//--------------------------------------------------Manager End----------------------------------------------------
+	
+	//--------------------------------------------------Role Start-----------------------------------------------------
+	@RequestMapping(value="/searchRoles.do",method=RequestMethod.POST)
+	public void searchRoles(HttpServletRequest request,HttpServletResponse response) {
+		OutputStream os = null;
+		try {
+			List<ResultRole> roles = managerDao.searchRoleList();
+			
+			ResponseSearchRoles respObj = new ResponseSearchRoles();
+			respObj.setRoles(roles);
+			os = response.getOutputStream();
+			os.write(GsonUtil.getInstance().toJson(respObj).getBytes("utf-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
 			closeStream(os);
 		}
 	}
@@ -496,6 +513,60 @@ public class ManagerController extends BaseController {
 		}
 	}
 	
+	@RequestMapping(value="removeRole.do",method=RequestMethod.POST)
+	public void removeRole(HttpServletRequest request,HttpServletResponse response) {
+		InputStream is = null;
+		OutputStream os = null;
+		try {
+			is = request.getInputStream();
+			String req = HttpUtil.getInstance().readStreamToString(is);
+			RequestRemoveRole reqObj = GsonUtil.getInstance().fromJson(req, RequestRemoveRole.class);
+			
+			BaseResponse respObj = new BaseResponse();
+			int count = managerDao.canRemoveRole(reqObj.getRoleId());
+			if ( count == 0 ) {
+				managerDao.deleteRole(reqObj.getRoleId());
+				managerDao.deleteRelevanceRole(reqObj.getRoleId());
+			} else {
+				respObj.setResponseId(ResponseMessage.ROLE_IS_USED);
+			}
+			os = response.getOutputStream();
+			os.write(GsonUtil.getInstance().toJson(respObj).getBytes("utf-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			closeStream(is);
+			closeStream(os);
+		}
+	}
+	
+	@RequestMapping(value="/batchDeleteRole.do",method=RequestMethod.POST)
+	public void batchDeleteRole(HttpServletRequest request,HttpServletResponse response) {
+		try {
+			RequestBatchDeleteRole reqObj = HttpUtil.getInstance().readRequestToObject(request, RequestBatchDeleteRole.class);
+			
+			BaseResponse respObj = new BaseResponse();
+			List<Integer> ids = reqObj.getIds();
+			boolean canDelete = true;
+			for(Integer id:ids) {
+				if ( managerDao.canRemoveRole(id) != 0 ) {
+					canDelete = false;
+					break;
+				}
+			}
+			if (  canDelete ) {
+				managerDao.batchDeleteRole(ids);
+			} else {
+				respObj.setResponseId(ResponseMessage.ROLE_IS_USED);
+			}
+			HttpUtil.getInstance().writeResponseFromObject(response, respObj);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	//--------------------------------------------------Role End-------------------------------------------------------
+
+	//--------------------------------------------------Dir Start------------------------------------------------------
 	@RequestMapping(value="searchDir.do",method=RequestMethod.POST)
 	public void searchDirById(HttpServletRequest request,HttpServletResponse response) {
 		InputStream is = null;
@@ -567,57 +638,40 @@ public class ManagerController extends BaseController {
 			closeStream(os);
 		}
 	}
-	
-	@RequestMapping(value="removeRole.do",method=RequestMethod.POST)
-	public void removeRole(HttpServletRequest request,HttpServletResponse response) {
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = request.getInputStream();
-			String req = HttpUtil.getInstance().readStreamToString(is);
-			RequestRemoveRole reqObj = GsonUtil.getInstance().fromJson(req, RequestRemoveRole.class);
-			
-			BaseResponse respObj = new BaseResponse();
-			int count = managerDao.canRemoveRole(reqObj.getRoleId());
-			if ( count == 0 ) {
-				managerDao.deleteRole(reqObj.getRoleId());
-				managerDao.deleteRelevanceRole(reqObj.getRoleId());
-			} else {
-				respObj.setResponseId(ResponseMessage.ROLE_IS_USED);
-			}
-			os = response.getOutputStream();
-			os.write(GsonUtil.getInstance().toJson(respObj).getBytes("utf-8"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			closeStream(is);
-			closeStream(os);
-		}
+	//--------------------------------------------------Dir End------------------------------------------------------
+	private Workbook getWorkbook(InputStream is,String fileName) throws IOException {
+		Workbook wb = new HSSFWorkbook(is);
+		return wb;
 	}
 	
-	@RequestMapping(value="managerTemplate.file",method=RequestMethod.GET)
-	public void generateManagerTemplate(HttpServletRequest request,HttpServletResponse response) {
+	private File saveUploadFile(MultipartFile file,String fileName) {
+		if ( file.isEmpty() ) {
+			return null;
+		}
+		InputStream is = null;
 		OutputStream os = null;
+		File cacheFile = null;
 		try {
-			HSSFWorkbook wb = null;
-			wb = createManagerTemplate();
-			response.setHeader("Content-disposition", "attachment;filename= manager.xls");  //客户端得到的文件名
-
-			response.setContentType("application/x-download");//设置为下载application/x-download  	
-			response.setContentType("text/html; charset=UTF-8");   
-			response.setHeader("Cache-Control","no-cache");   
-			response.setHeader("Cache-Control","no-store");   
-			response.setDateHeader("Expires", 0);   
-			response.setHeader("Pragma","no-cache");
-			os = response.getOutputStream();
-			wb.write(os);
+			is = file.getInputStream();
+			cacheFile = new File(fileName);
+			cacheFile.createNewFile();
+			os = new FileOutputStream(cacheFile);
+			System.out.println(cacheFile.getAbsolutePath());
+			int length = 0;
+			byte[] buff = new byte[40960];
+			while ( (length = is.read(buff)) > 0 ) {
+				os.write(buff, 0, length);
+			}
 			os.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			closeStream(os);
+			closeStream(is);
 		}
+		return cacheFile;
 	}
+	
 	
 	private HSSFWorkbook createRoleTemplate() {
 		HSSFWorkbook wb = new HSSFWorkbook();
